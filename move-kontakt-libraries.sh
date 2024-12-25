@@ -1,7 +1,9 @@
 #!/bin/bash
 # move-kontakt-libraries.sh
 
-scriptName="$(readlink -f "$0")"
+scriptPath=$(realpath "$0")
+scriptName="$(basename "${scriptPath}")"
+
 
 
 OldRoot="/mnt/c/Users/Public/Documents"
@@ -15,9 +17,11 @@ die() {
 
 move_lib() {
     local src="$1"
-    [[ -d "${OldRoot}/${src}" ]] || die "Can't find ${OldRoot}/${src}"
+    [[ -d "${OldRoot}/${src}" ]] || { echo "Can't find ${OldRoot}/${src}" >&2; return 0; }
+    set +e
+    cd ${NewRoot} || die "Can't cd to ${NewRoot}"
+    
     set -ue 
-    cd ${NewRoot} || { echo "Can't cd to ${NewRoot}, skipping" >&2; return ; }
     mkdir -p "$src" 
     (
         set -ue
@@ -32,7 +36,7 @@ move_lib() {
 
 
 main() {
-    PS4='\033[0;33m+$?( $(realpath ${BASH_SOURCE}):${LINENO} 2>/dev/null ):\033[0m ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+    PS4='\033[0;33m+$?( ${scriptName}:${LINENO} 2>/dev/null ):\033[0m ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
     [[ $# -eq 0 ]] && {
         echo "Usage: $(basename "${scriptName}") [--all] <LibraryName> [<LibraryName> ...]"
         return 0
